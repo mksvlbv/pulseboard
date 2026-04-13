@@ -1,0 +1,148 @@
+<div class="dashboard">
+  <div class="dashboard__header">
+    <div>
+      <h1 class="dashboard__title">Dashboard</h1>
+      <p class="dashboard__subtitle">Real-time IoT device monitoring</p>
+    </div>
+    <div class="dashboard__live" role="status" aria-live="polite">
+      <span class="dashboard__live-dot" aria-hidden="true"></span>
+      Live — {{ updateCount() }} updates
+    </div>
+  </div>
+
+  <!-- Loading Skeleton -->
+  @if (loading$ | async) {
+    <div class="skeleton-grid">
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+      <div class="skeleton-card"></div>
+    </div>
+    <div class="charts-grid">
+      <div class="chart-card"><div class="skeleton-chart"></div></div>
+      <div class="chart-card"><div class="skeleton-chart"></div></div>
+    </div>
+  } @else {
+
+  <!-- Stats Cards -->
+  <div class="stats-grid">
+    @if (devices$ | async; as devices) {
+      <div class="stat-card">
+        <div class="stat-card__icon stat-card__icon--accent">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="8" rx="2"/><rect x="2" y="14" width="20" height="8" rx="2"/><line x1="6" x2="6.01" y1="6" y2="6"/><line x1="6" x2="6.01" y1="18" y2="18"/></svg>
+        </div>
+        <div class="stat-card__info">
+          <span class="stat-card__value">{{ devices.length }}</span>
+          <span class="stat-card__label">Total Devices</span>
+        </div>
+      </div>
+    }
+
+    @if (onlineDevices$ | async; as online) {
+      <div class="stat-card">
+        <div class="stat-card__icon stat-card__icon--success">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+        </div>
+        <div class="stat-card__info">
+          <span class="stat-card__value">{{ online.length }}</span>
+          <span class="stat-card__label">Online</span>
+        </div>
+      </div>
+    }
+
+    @if (alertsCount$ | async; as counts) {
+      <div class="stat-card">
+        <div class="stat-card__icon stat-card__icon--danger">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+        </div>
+        <div class="stat-card__info">
+          <span class="stat-card__value">{{ counts.total }}</span>
+          <span class="stat-card__label">Active Alerts</span>
+        </div>
+      </div>
+    }
+
+    @if (avgTemp$ | async; as temp) {
+      <div class="stat-card">
+        <div class="stat-card__icon stat-card__icon--warning">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 14.76V3.5a2.5 2.5 0 0 0-5 0v11.26a4.5 4.5 0 1 0 5 0z"/></svg>
+        </div>
+        <div class="stat-card__info">
+          <span class="stat-card__value">{{ temp | number:'1.1-1' }}°C</span>
+          <span class="stat-card__label">Avg Temperature</span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Charts -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <div class="chart-card__header">
+        <h3>Energy Consumption</h3>
+        <span class="chart-card__unit">kWh</span>
+      </div>
+      <div class="chart-card__body">
+        <canvas #energyChart></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-card__header">
+        <h3>Temperature Trend</h3>
+        <span class="chart-card__unit">°C</span>
+      </div>
+      <div class="chart-card__body">
+        <canvas #tempChart></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- Devices + Live Feed -->
+  <div class="bottom-grid">
+    <div class="card">
+      <div class="card__header">
+        <h3>Device Status</h3>
+      </div>
+      @if (devices$ | async; as devices) {
+        <div class="device-list" tabindex="0">
+          @for (device of devices; track device.id) {
+            <div class="device-row">
+              <div class="device-row__status">
+                <span class="status-dot" [class]="getStatusClass(device.status)"></span>
+              </div>
+              <div class="device-row__info">
+                <span class="device-row__name">{{ device.name }}</span>
+                <span class="device-row__location">{{ device.location }}</span>
+              </div>
+              <div class="device-row__metrics">
+                <span class="device-row__temp">{{ device.temperature | number:'1.1-1' }}°C</span>
+                <span class="device-row__energy">{{ device.energy | number:'1.1-1' }} kWh</span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="card">
+      <div class="card__header">
+        <h3>Live Sensor Feed</h3>
+        <span class="card__badge">WebSocket</span>
+      </div>
+      <div class="live-feed">
+        @for (update of liveUpdatesList(); track $index) {
+          <div class="feed-item">
+            <span class="feed-item__device">{{ getDeviceName(update.deviceId) }}</span>
+            <span class="feed-item__value">{{ update.temperature }}°C</span>
+            <span class="feed-item__value">{{ update.humidity }}%</span>
+            <span class="feed-item__time">{{ formatTime(update.timestamp) }}</span>
+          </div>
+        }
+        @if (liveUpdatesList().length === 0) {
+          <div class="feed-empty">Waiting for data...</div>
+        }
+      </div>
+    </div>
+  </div>
+  } <!-- end @else loading -->
+</div>

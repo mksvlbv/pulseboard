@@ -1,0 +1,74 @@
+<div class="alerts-page">
+  <div class="alerts-page__header">
+    <div>
+      <h1 class="alerts-page__title">Alerts</h1>
+      <p class="alerts-page__subtitle">Real-time system notifications</p>
+    </div>
+    @if (alertsCount$ | async; as counts) {
+      <div class="alerts-page__summary">
+        <span class="summary-badge summary-badge--critical">{{ counts.critical }} Critical</span>
+        <span class="summary-badge summary-badge--warning">{{ counts.warning }} Warning</span>
+        <span class="summary-badge summary-badge--info">{{ counts.info }} Info</span>
+      </div>
+    }
+  </div>
+
+  <div class="filters">
+    <select class="filters__select" (change)="setSeverity($any($event.target).value)" aria-label="Filter by severity">
+      <option value="all">All Severity</option>
+      <option value="critical">Critical</option>
+      <option value="warning">Warning</option>
+      <option value="info">Info</option>
+    </select>
+    <select class="filters__select" (change)="setStatus($any($event.target).value)" aria-label="Filter by status">
+      <option value="all">All Status</option>
+      <option value="active">Active</option>
+      <option value="acknowledged">Acknowledged</option>
+      <option value="resolved">Resolved</option>
+    </select>
+  </div>
+
+  @if (alerts$ | async; as alerts) {
+    <div class="alerts-list">
+      @for (alert of filterAlerts(alerts); track alert.id) {
+        <div class="alert-card" [class]="'alert-card--' + alert.severity" [class.resolved]="alert.status === 'resolved'">
+          <div class="alert-card__icon">
+            @switch (alert.severity) {
+              @case ('critical') {
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="15" x2="9" y1="9" y2="15"/><line x1="9" x2="15" y1="9" y2="15"/></svg>
+              }
+              @case ('warning') {
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" x2="12" y1="9" y2="13"/><line x1="12" x2="12.01" y1="17" y2="17"/></svg>
+              }
+              @case ('info') {
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" x2="12" y1="16" y2="12"/><line x1="12" x2="12.01" y1="8" y2="8"/></svg>
+              }
+            }
+          </div>
+          <div class="alert-card__content">
+            <div class="alert-card__top">
+              <span class="alert-card__device">{{ alert.deviceName }}</span>
+              <span class="alert-card__time">{{ timeAgo(alert.timestamp) }}</span>
+            </div>
+            <p class="alert-card__message">{{ alert.message }}</p>
+            @if (alert.value && alert.threshold) {
+              <span class="alert-card__metric">{{ alert.metric }}: {{ alert.value }} (threshold: {{ alert.threshold }})</span>
+            }
+          </div>
+          <div class="alert-card__actions">
+            <span class="alert-card__status-badge" [class]="'status--' + alert.status">{{ alert.status }}</span>
+            @if (alert.status === 'active') {
+              <button class="btn-sm" (click)="acknowledge(alert.id)">Acknowledge</button>
+            }
+            @if (alert.status === 'acknowledged') {
+              <button class="btn-sm btn-sm--success" (click)="resolve(alert.id)">Resolve</button>
+            }
+          </div>
+        </div>
+      }
+      @if (filterAlerts(alerts).length === 0) {
+        <div class="alerts-empty">No alerts matching filters.</div>
+      }
+    </div>
+  }
+</div>

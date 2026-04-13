@@ -1,0 +1,140 @@
+<div class="devices">
+  <div class="devices__header">
+    <div>
+      <h1 class="devices__title">Devices</h1>
+      <p class="devices__subtitle">Manage and monitor your IoT fleet</p>
+    </div>
+    <button class="btn btn--primary" (click)="openCreate()">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" x2="12" y1="5" y2="19"/><line x1="5" x2="19" y1="12" y2="12"/></svg>
+      Add Device
+    </button>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters">
+    <div class="filters__search">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" x2="16.65" y1="21" y2="16.65"/></svg>
+      <input type="text" placeholder="Search devices..." [value]="searchQuery()" (input)="onSearch($any($event.target).value)" aria-label="Search devices" />
+    </div>
+    <select class="filters__select" (change)="onStatusFilter($any($event.target).value)" aria-label="Filter by status">
+      <option value="all">All Status</option>
+      <option value="online">Online</option>
+      <option value="offline">Offline</option>
+      <option value="warning">Warning</option>
+      <option value="critical">Critical</option>
+    </select>
+    <select class="filters__select" (change)="onTypeFilter($any($event.target).value)" aria-label="Filter by type">
+      <option value="all">All Types</option>
+      <option value="sensor">Sensor</option>
+      <option value="actuator">Actuator</option>
+      <option value="gateway">Gateway</option>
+      <option value="controller">Controller</option>
+    </select>
+  </div>
+
+  <!-- Table -->
+  @if (devices$ | async; as devices) {
+    @let filtered = filterAndSort(devices);
+    @let paginated = paginate(filtered);
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr>
+            <th>Status</th>
+            <th class="sortable" (click)="onSort('name')">
+              Name
+              @if (sortField() === 'name') { <span class="sort-icon">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span> }
+            </th>
+            <th>Type</th>
+            <th>Location</th>
+            <th class="sortable" (click)="onSort('temperature')">
+              Temp
+              @if (sortField() === 'temperature') { <span class="sort-icon">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span> }
+            </th>
+            <th class="sortable" (click)="onSort('energy')">
+              Energy
+              @if (sortField() === 'energy') { <span class="sort-icon">{{ sortDirection() === 'asc' ? '↑' : '↓' }}</span> }
+            </th>
+            <th>Battery</th>
+            <th>Signal</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (device of paginated; track device.id) {
+            <tr (click)="openDetail(device.id)">
+              <td><span class="status-dot" [class]="getStatusClass(device.status)"></span></td>
+              <td class="td-name">
+                <span class="device-name">{{ device.name }}</span>
+                <span class="device-fw">{{ device.firmware }}</span>
+              </td>
+              <td><span class="type-badge">{{ device.type }}</span></td>
+              <td class="td-dim">{{ device.location }}</td>
+              <td class="td-mono">{{ device.temperature | number:'1.1-1' }}°C</td>
+              <td class="td-mono">{{ device.energy | number:'1.1-1' }} kWh</td>
+              <td>
+                <div class="battery-bar">
+                  <div class="battery-bar__fill" [style.width.%]="device.batteryLevel"
+                    [class.low]="device.batteryLevel < 25"
+                    [class.mid]="device.batteryLevel >= 25 && device.batteryLevel < 60">
+                  </div>
+                </div>
+                <span class="td-dim">{{ device.batteryLevel }}%</span>
+              </td>
+              <td class="td-mono td-dim">{{ device.signalStrength }} dBm</td>
+              <td>
+                <button class="btn-icon btn-icon--danger" (click)="confirmDelete(device.id, device.name, $event)" title="Delete" aria-label="Delete device">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages(filtered.length) > 1) {
+      <div class="pagination">
+        <span class="pagination__info">{{ filtered.length }} devices · Page {{ currentPage() }} of {{ totalPages(filtered.length) }}</span>
+        <div class="pagination__btns">
+          <button class="btn btn--ghost" [disabled]="currentPage() === 1" (click)="currentPage.set(currentPage() - 1)">← Prev</button>
+          <button class="btn btn--ghost" [disabled]="currentPage() === totalPages(filtered.length)" (click)="currentPage.set(currentPage() + 1)">Next →</button>
+        </div>
+      </div>
+    }
+  }
+
+  <!-- Create Modal -->
+  @if (showCreateModal()) {
+    <div class="modal-overlay" (click)="showCreateModal.set(false)" (keydown.escape)="showCreateModal.set(false)">
+      <div class="modal" role="dialog" aria-modal="true" aria-labelledby="createModalTitle" (click)="$event.stopPropagation()">
+        <h2 id="createModalTitle">Add New Device</h2>
+        <div class="modal__field">
+          <label>Name</label>
+          <input type="text" [ngModel]="newDevice().name" (ngModelChange)="updateNewDevice('name', $event)" placeholder="e.g. Temperature Sensor #9" required />
+          @if (!newDevice().name?.trim()) {
+            <span class="modal__error">Device name is required</span>
+          }
+        </div>
+        <div class="modal__field">
+          <label>Type</label>
+          <select [ngModel]="newDevice().type" (ngModelChange)="updateNewDevice('type', $event)">
+            <option value="sensor">Sensor</option>
+            <option value="actuator">Actuator</option>
+            <option value="gateway">Gateway</option>
+            <option value="controller">Controller</option>
+          </select>
+        </div>
+        <div class="modal__field">
+          <label>Location</label>
+          <input type="text" [ngModel]="newDevice().location" (ngModelChange)="updateNewDevice('location', $event)" placeholder="e.g. Building A - Floor 3" />
+        </div>
+        <div class="modal__actions">
+          <button class="btn btn--ghost" (click)="showCreateModal.set(false)">Cancel</button>
+          <button class="btn btn--primary" (click)="createDevice()" [disabled]="!newDevice().name?.trim()">Create Device</button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

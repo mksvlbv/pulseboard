@@ -1,0 +1,101 @@
+<div class="detail">
+  <button class="detail__back" (click)="goBack()">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+    Back to Devices
+  </button>
+
+  @if (device$ | async; as device) {
+    <div class="detail__header">
+      <div class="detail__title-row">
+        <span class="status-dot status-dot--lg" [class]="getStatusClass(device.status)"></span>
+        <h1>{{ device.name }}</h1>
+        <span class="detail__status-label" [class]="getStatusClass(device.status)">{{ device.status }}</span>
+      </div>
+      <p class="detail__meta">{{ device.type | uppercase }} · {{ device.location }} · Firmware {{ device.firmware }}</p>
+    </div>
+
+    <!-- Metrics -->
+    <div class="metrics-grid">
+      <div class="metric-card">
+        <span class="metric-card__label">Temperature</span>
+        <span class="metric-card__value metric-card__value--danger">{{ device.temperature | number:'1.1-1' }}°C</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-card__label">Humidity</span>
+        <span class="metric-card__value metric-card__value--info">{{ device.humidity | number:'1.1-1' }}%</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-card__label">Energy</span>
+        <span class="metric-card__value metric-card__value--warning">{{ device.energy | number:'1.2-2' }} kWh</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-card__label">Pressure</span>
+        <span class="metric-card__value">{{ device.pressure }} hPa</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-card__label">Battery</span>
+        <span class="metric-card__value" [class.metric-card__value--danger]="device.batteryLevel < 25">{{ device.batteryLevel }}%</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-card__label">Signal</span>
+        <span class="metric-card__value">{{ device.signalStrength }} dBm</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-card__label">Uptime</span>
+        <span class="metric-card__value">{{ device.uptimeHours }}h</span>
+      </div>
+      <div class="metric-card">
+        <span class="metric-card__label">Last Seen</span>
+        <span class="metric-card__value metric-card__value--small">{{ formatTime(device.lastSeen) }}</span>
+      </div>
+    </div>
+
+    <!-- Live Chart -->
+    <div class="chart-section">
+      <div class="chart-section__header">
+        <h2>Live Sensor History</h2>
+        <span class="chart-section__badge">
+          <span class="live-dot"></span>
+          Real-time · {{ liveReadings().length }} readings
+        </span>
+      </div>
+      <div class="chart-section__body">
+        <canvas #historyChart></canvas>
+      </div>
+    </div>
+
+    <!-- Live Readings Table -->
+    <div class="readings-section">
+      <h2>Recent Readings</h2>
+      <div class="readings-table-wrap">
+        <table class="readings-table">
+          <thead>
+            <tr>
+              <th>Time</th>
+              <th>Temperature</th>
+              <th>Humidity</th>
+              <th>Energy</th>
+              <th>Pressure</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (r of liveReadings().slice().reverse().slice(0, 10); track $index) {
+              <tr>
+                <td class="td-dim">{{ formatTime(r.timestamp) }}</td>
+                <td>{{ r.temperature }}°C</td>
+                <td>{{ r.humidity }}%</td>
+                <td>{{ r.energy }} kWh</td>
+                <td>{{ r.pressure }} hPa</td>
+              </tr>
+            }
+            @if (liveReadings().length === 0) {
+              <tr><td colspan="5" class="td-empty">Waiting for live data from this device...</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  } @else {
+    <div class="detail__empty">Device not found.</div>
+  }
+</div>
