@@ -1,5 +1,7 @@
 # PulseBoard — IoT Device Monitoring Dashboard
 
+[![CI](https://github.com/mksvlbv/pulseboard/actions/workflows/ci.yml/badge.svg)](https://github.com/mksvlbv/pulseboard/actions/workflows/ci.yml)
+
 A real-time IoT device monitoring dashboard built with **Angular 19**, showcasing advanced features including NgRx state management, Apollo GraphQL, Angular Signals, RxJS reactive streams, and Chart.js data visualization.
 
 > **Built entirely using AI-assisted development** with Windsurf (Cascade). See [PROMPT_LOG.md](./PROMPT_LOG.md) for the full development trace.
@@ -77,15 +79,17 @@ npm install
 npm start           # http://localhost:4300
 ```
 
-## E2E Testing
+## Testing
 
 ```bash
-npm run e2e              # Run all 112 tests (Desktop Chrome + Mobile iPhone SE)
-npm run e2e:headed       # Run with browser visible
+npm test                 # 21 unit tests (Karma + Jasmine)
+npm run e2e              # 112 E2E tests (Desktop Chrome + Mobile iPhone SE)
+npm run e2e:headed       # Run E2E with browser visible
 npm run e2e:screenshots  # Generate 20 screenshots
 ```
 
-**Test coverage:** navigation, dashboard, devices (CRUD + search + filters), device detail, alerts (acknowledge/resolve), settings (toggles + persistence), accessibility audit (axe-core).
+**Unit tests:** NgRx selectors, reducer, WebSocket simulator service (TestBed + fakeAsync).
+**E2E coverage:** navigation, dashboard, devices (CRUD + search + filters), device detail, alerts (acknowledge/resolve), settings (toggles + persistence), accessibility audit (axe-core).
 
 ### Screenshots
 
