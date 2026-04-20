@@ -4,11 +4,11 @@
 
 A real-time IoT device monitoring dashboard built with **Angular 19**, showcasing advanced features including NgRx state management, Apollo GraphQL, Angular Signals, RxJS reactive streams, and Chart.js data visualization.
 
-> **Built entirely using AI-assisted development** with Windsurf (Cascade). See [PROMPT_LOG.md](./PROMPT_LOG.md) for the full development trace.
+> **Built entirely using AI-assisted development** with Windsurf (Cascade). See [AI_ARCHITECTURE.md](./AI_ARCHITECTURE.md) for the architectural decisions and [PROMPT_LOG.md](./PROMPT_LOG.md) for the full development trace.
 
 ## Live Demo
 
-> Deployment link TBD
+> [Live Demo on Vercel](https://pulseboard-seven.vercel.app/)
 
 ## Features
 
