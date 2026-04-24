@@ -2,9 +2,21 @@
 
 [![CI](https://github.com/mksvlbv/pulseboard/actions/workflows/ci.yml/badge.svg)](https://github.com/mksvlbv/pulseboard/actions/workflows/ci.yml)
 
-A real-time IoT device monitoring dashboard built with **Angular 19**, showcasing advanced features including NgRx state management, Apollo GraphQL, Angular Signals, RxJS reactive streams, and Chart.js data visualization.
+A frontend architecture case study for an IoT-style monitoring dashboard built with **Angular 19**, showcasing NgRx state management, Apollo GraphQL integration patterns, Angular Signals, RxJS reactive streams, and Chart.js data visualization.
 
-> **Built entirely using AI-assisted development** with Windsurf (Cascade). See [AI_ARCHITECTURE.md](./AI_ARCHITECTURE.md) for the architectural decisions and [PROMPT_LOG.md](./PROMPT_LOG.md) for the full development trace.
+> Includes AI-assisted delivery notes in [AI_ARCHITECTURE.md](./AI_ARCHITECTURE.md) and a prompt log in [PROMPT_LOG.md](./PROMPT_LOG.md), without treating the repo itself as an AI-generated artifact.
+
+## Reviewer Quick Read
+
+1. Devices, alerts, and settings are broad Angular feature surfaces with NgRx, Signals, and strong automated test coverage.
+2. GraphQL and realtime behavior are intentionally simulated in-browser to keep the focus on frontend architecture.
+3. This repo proves UI systems depth, state management discipline, accessibility, and testing maturity.
+
+## Honest Scope Boundaries
+
+- GraphQL uses a mock Apollo link, not a live backend service.
+- Realtime updates come from RxJS simulators, not production websocket infrastructure.
+- Treat this repo as frontend depth evidence, not backend systems proof.
 
 ## Live Demo
 
